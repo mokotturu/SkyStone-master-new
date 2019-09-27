@@ -39,9 +39,6 @@ public class AutonomousDepot extends LinearOpMode {
     // called when init button is  pressed.
     @Override
     public void runOpMode() throws InterruptedException {
-        // Set up detector with phone camera
-        // detector = new GoldAlignDetector();
-        // detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
 
         leftFront = hardwareMap.dcMotor.get("left front");
         leftBack = hardwareMap.dcMotor.get("left back");
