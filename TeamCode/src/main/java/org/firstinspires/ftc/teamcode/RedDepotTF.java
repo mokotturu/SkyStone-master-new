@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.hardware.camera2.CameraDevice;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -27,7 +29,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@Autonomous(name = "Concept: TensorFlow Object Detection", group = "Autonomous")
+@Autonomous(name = "Auto: Red Depot TensorFlow", group = "Autonomous")
 public class RedDepotTF extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
     private static final String LABEL_FIRST_ELEMENT = "Stone";
@@ -47,7 +49,7 @@ public class RedDepotTF extends LinearOpMode {
      */
 
     // my vars
-    DcMotor leftFront, leftBack, rightFront, rightBack;
+    /*DcMotor leftFront, leftBack, rightFront, rightBack;
     Servo foundationServo;
     BNO055IMU imu;
     Orientation lastAngles = new Orientation();
@@ -60,7 +62,7 @@ public class RedDepotTF extends LinearOpMode {
     static final double     WHELL_DIAMETER_INCHES = 3.937;
     static final double     COUNTS_PER_INCH       = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHELL_DIAMETER_INCHES * 3.1415);
-
+*/
     private static final String VUFORIA_KEY =
             "AYwbyD3/////AAABmcQy8KQ2GUG0mLaL681zKW8cqcugpyNcjH4FxADW/cXWDWucp5yyeltpiauKz2u7cGDZz7sht8c/ldZLdw5iS2KNwRmwp0Yfwj9QdKvihkZDc8KkWYocRIA9XCkaaXRo9cjUnkqP2i1Uc0G9UwIxWboM9AloXVWeTVvzv1X87huCc+wCuIbQi/x8LvAf4db2ezD4WaaW5FM2TdacAL6GX17WkOr5u76RlW5Eru2ZSNm4ZPGShv6nb7EE3vfZWJ7IpHaaGf9QAKF8UK93ut2JfPc72V36ZghnZhb+3/nnN6llvnNKrKeG+3rOllxQCltDtrYN04p/0+e+KazICkjs9/FMHI/EOBOjDHYsmp8rfr/t";
 
@@ -96,7 +98,7 @@ public class RedDepotTF extends LinearOpMode {
             tfod.activate();
         }
 
-        leftFront = hardwareMap.dcMotor.get("left front");
+        /*leftFront = hardwareMap.dcMotor.get("left front");
         leftBack = hardwareMap.dcMotor.get("left back");
         rightFront = hardwareMap.dcMotor.get("right front");
         rightBack = hardwareMap.dcMotor.get("right back");
@@ -164,7 +166,7 @@ public class RedDepotTF extends LinearOpMode {
         telemetry.update();
 
         sleep(1000);
-
+*/
 
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start op mode");
@@ -184,11 +186,63 @@ public class RedDepotTF extends LinearOpMode {
                         int i = 0;
                         for (Recognition recognition : updatedRecognitions) {
                             telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
-                            telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                            /*telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
                                     recognition.getLeft(), recognition.getTop());
                             telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
-                                    recognition.getRight(), recognition.getBottom());
+                                    recognition.getRight(), recognition.getBottom());*/
                         }
+                        //telemetry.update();
+
+                        /*int skystone = -1;
+                        int stoneOne = -1;
+                        int stoneTwo = -1;
+                        if (updatedRecognitions.size() == 2) {
+                            for (Recognition recognition : updatedRecognitions) {
+                                if(recognition.getLabel().equals("Skystone")) {
+                                    skystone = (int) recognition.getLeft();
+                                } else if (stoneOne == -1) {
+                                    stoneOne = (int) recognition.getLeft();
+                                } else {
+                                    stoneTwo = (int) recognition.getLeft();
+                                }
+                            }
+                        }
+
+                        if (skystone != -1 && stoneOne != -1 && stoneTwo != -1) {
+                            if(skystone < stoneOne && skystone < stoneTwo) {
+                                telemetry.addData("SkyStone Position", "Left");
+                            } else if (skystone > stoneOne && skystone > stoneTwo) {
+                                telemetry.addData("SkyStone Position", "Right");
+                            } else {
+                                telemetry.addData("SkyStone Position", "Center");
+                            }
+                        }*/
+
+                        int skystone = -1;
+                        int stoneOne = -1;
+                        int stoneTwo = -1;
+                        if (updatedRecognitions.size() == 3) {
+                            for (Recognition recognition : updatedRecognitions) {
+                                if(recognition.getLabel().equals("Skystone")) {
+                                    skystone = (int) recognition.getLeft();
+                                } else if (stoneOne == -1) {
+                                    stoneOne = (int) recognition.getLeft();
+                                } else {
+                                    stoneTwo = (int) recognition.getLeft();
+                                }
+                            }
+                        }
+
+                        if (skystone != -1 && stoneOne != -1 && stoneTwo != -1) {
+                            if(skystone < stoneOne && skystone < stoneTwo) {
+                                telemetry.addData("SkyStone Position", "Left");
+                            } else if (skystone > stoneOne && skystone > stoneTwo) {
+                                telemetry.addData("SkyStone Position", "Right");
+                            } else {
+                                telemetry.addData("SkyStone Position", "Center");
+                            }
+                        }
+
                         telemetry.update();
                     }
                 }
