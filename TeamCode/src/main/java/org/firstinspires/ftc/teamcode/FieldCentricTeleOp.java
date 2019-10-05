@@ -1,3 +1,10 @@
+/**
+ * Field centric tele op: front is always the field's front, not the robot's front
+ *
+ * NOTES:
+ * -
+ */
+
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -12,13 +19,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import java.util.Locale;
 import java.lang.Math;
 import java.util.Arrays;
-
-/*
-This code is written as an example only.
-Obviously, it was not tested on your team's robot.
-Teams who use and reference this code are expected to understand code they use.
-If you use our code and see us at competition, come say hello!
-*/
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "Field Centric Mecanum", group = "TeleOp")
 public class FieldCentricTeleOp extends OpMode {

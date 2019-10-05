@@ -21,7 +21,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @Autonomous(name="Autonomous Building Site", group="Autonomous")
-//@Disabled
 public class AutonomousBuildingSite extends LinearOpMode {
     DcMotor                 leftFront, leftBack, rightFront, rightBack;
     Servo                   foundationServo;

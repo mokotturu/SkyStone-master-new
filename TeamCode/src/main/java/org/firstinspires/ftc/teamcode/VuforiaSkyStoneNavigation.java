@@ -28,6 +28,7 @@
  *
  * NOTES;
  * - Change the phone's position inside the robot
+ * - How about field centric auto?
  */
 
 package org.firstinspires.ftc.teamcode;
@@ -134,7 +135,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
     private static final float bridgeZ = 6.42f * mmPerInch;
     private static final float bridgeY = 23 * mmPerInch;
     private static final float bridgeX = 5.18f * mmPerInch;
-    private static final float bridgeRotY = 59;                                 // Units are degrees
+    private static final float bridgeRotY = 59;                           // Units are degrees
     private static final float bridgeRotZ = 180;
 
     // Constants for perimeter targets
@@ -404,7 +405,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
 
         targetsSkyStone.activate();
 
-        while (!isStopRequested() && !opModeIsActive()) {
+        while (!opModeIsActive() && !isStopRequested()) {
 
             telemetry.addLine("Waiting for start command.");
             telemetry.update();
@@ -430,7 +431,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
                 move(500, movePower, true);
             }*/
 
-            waitForStart();
+            // waitForStart();
         }
 
         if (opModeIsActive()) {
@@ -489,7 +490,17 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
                 telemetry.addData("Sampling", "right");
             }
             telemetry.update();
-            Thread.sleep(15000);
+            // Thread.sleep(15000);    // monitor behaviour
+
+            if (positionSkyStone.equals("left")) {
+                // pick the leftmost one up, move to the foundation, and put it there
+            } else if (positionSkyStone.equals("center")) {
+                // pick the center skystone up, move to the foundation, and put it there
+            } else {
+                // pick the rightmost skystone up, move to the foundation, and put it there
+            }
+
+            // commands for the second skystone depending upon the location of the first one
         }
 
         // Disable Tracking when we are done;
@@ -534,7 +545,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
         rightFront.setPower(-myPower);
         rightBack.setPower(myPower);
 
-        while(leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
+        while (leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
 
         leftFront.setPower(0);
         leftBack.setPower(0);
@@ -583,7 +594,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
         rightFront.setPower(myPower);
         rightBack.setPower(myPower);
 
-        while(leftFront.isBusy() && leftBack.isBusy() && rightBack.isBusy() && rightFront.isBusy()) { }
+        while (leftFront.isBusy() && leftBack.isBusy() && rightBack.isBusy() && rightFront.isBusy()) { }
 
         leftFront.setPower(0);
         leftBack.setPower(0);

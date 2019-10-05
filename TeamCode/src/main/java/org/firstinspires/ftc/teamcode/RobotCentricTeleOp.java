@@ -1,3 +1,11 @@
+/**
+ * Robot centric tele op: front is robot's front.
+ *
+ * Notes:
+ * - Automation with the arm using the touch sensor
+ * - Button layout
+ */
+
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -21,6 +29,7 @@ public class RobotCentricTeleOp extends OpMode {
     private static DcMotor leftBackWheel;
     private static DcMotor rightFrontWheel;
     private static DcMotor rightBackWheel;
+    private static DcMotor intakeMotor;
 
     private static Servo foundationServo;
 
@@ -30,6 +39,7 @@ public class RobotCentricTeleOp extends OpMode {
         leftBackWheel = hardwareMap.dcMotor.get("left back");
         rightFrontWheel = hardwareMap.dcMotor.get("right front");
         rightBackWheel = hardwareMap.dcMotor.get("right back");
+        intakeMotor = hardwareMap.dcMotor.get("intake motor");
 
         foundationServo = hardwareMap.servo.get("foundationServo");
 
@@ -46,11 +56,18 @@ public class RobotCentricTeleOp extends OpMode {
 
         driveMecanum(inputY, inputX, inputC);
 
-        if(gamepad1.a) {
+        if (gamepad1.a) {
             foundationServo.setPosition(0.25);
         }
-        if(gamepad1.b) {
+        if (gamepad1.b) {
             foundationServo.setPosition(0);
+        }
+        if (gamepad2.a) {
+            intakeMotor.setPower(1);
+        }
+        // what about the same button again to stop intake motor
+        if (gamepad2.b) {
+            intakeMotor.setPower(0);
         }
     }
 
