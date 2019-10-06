@@ -25,7 +25,6 @@ import org.openftc.revextensions2.*;
 @Autonomous(name="Autonomous Building Site", group="Autonomous")
 public class AutonomousBuildingSite extends LinearOpMode {
     DcMotor                 leftFront, leftBack, rightFront, rightBack, intakeMotor;
-    Servo                   foundationServo;
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
     PIDController           pidRotate, pidDrive;
@@ -49,11 +48,7 @@ public class AutonomousBuildingSite extends LinearOpMode {
 
         intakeMotor = hardwareMap.dcMotor.get("intake motor");
 
-        intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("left front");;
-
-        foundationServo = hardwareMap.servo.get("foundationServo");
-
-        foundationServo.setPosition(0);
+        intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake motor");;
 
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.REVERSE);
@@ -140,26 +135,21 @@ public class AutonomousBuildingSite extends LinearOpMode {
             // Timing Considerations to know why.
 
             // Moving to the foundation, pulling it, and then moving to the line
-            /*move(5, movePower/2, false);
-            foundationServo.setPosition(0.5);
+            move(5, movePower/2, false);
+            // foundationServo.setPosition(0.5);
             strafe(24, movePower, true);
             move(25, movePower, false);
             Thread.sleep(300);
             move(1, movePower/3, false);
-            foundationServo.setPosition(0);
+            // foundationServo.setPosition(0);
             Thread.sleep(300);
             move(27, movePower/1.7, true);  // change this to "when hitting the wall" once we get an ultrasonic sensor
-            foundationServo.setPosition(0.5);
+            // foundationServo.setPosition(0.5);
             Thread.sleep(15000);
             strafe(20, movePower, false);
             move(5, movePower, false);
-            foundationServo.setPosition(0);
-            strafe(28, movePower, false);*/
-
-            intakeMotor.setPower(1);
-
-            telemetry.addData("Intake Motor current", intakeMotorRE2.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS));
-            telemetry.update();
+            // foundationServo.setPosition(0);
+            strafe(28, movePower, false);
         }
     }
 
