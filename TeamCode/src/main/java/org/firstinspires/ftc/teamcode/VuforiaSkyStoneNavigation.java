@@ -405,37 +405,12 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
 
         targetsSkyStone.activate();
 
-        while (!opModeIsActive() && !isStopRequested()) {
+        while (/*!opModeIsActive() && */!isStopRequested()) {
 
-            telemetry.addLine("Waiting for start command.");
-            telemetry.update();
-
-            /*if (opModeIsActive()) {
-                // Use gyro to drive in a straight line.
-                correction = checkDirection();
-
-                telemetry.addData("1. imu heading", lastAngles.firstAngle);
-                telemetry.addData("2. global heading", globalAngle);
-                telemetry.addData("3. correction", correction);
-                telemetry.update();
-
-                leftFront.setPower(power - correction);
-                leftBack.setPower(power - correction);
-                rightFront.setPower(power + correction);
-                rightBack.setPower(power + correction);
-
-                // We record the sensor values because we will test them in more than
-                // one place with time passing between those places. See the lesson on
-                // Timing Considerations to know why.
-
-                move(500, movePower, true);
-            }*/
-
-            // waitForStart();
-        }
-
-        if (opModeIsActive()) {
             CameraDevice.getInstance().setFlashTorchMode(true);
+
+            /*telemetry.addLine("Waiting for start command.");
+            telemetry.update();*/
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
@@ -479,8 +454,8 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
                 telemetry.addData("Visible Target", "none");
             }
 
-            /*telemetry.addData("SkyStone Position", positionSkyStone);
-            telemetry.update();*/
+                /*telemetry.addData("SkyStone Position", positionSkyStone);
+                telemetry.update();*/
 
             if (positionSkyStone.equals("left")) {
                 telemetry.addData("Sampling", "left");
@@ -490,18 +465,50 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
                 telemetry.addData("Sampling", "right");
             }
             telemetry.update();
-            // Thread.sleep(15000);    // monitor behaviour
 
-            if (positionSkyStone.equals("left")) {
-                // pick the leftmost one up, move to the foundation, and put it there
-            } else if (positionSkyStone.equals("center")) {
-                // pick the center skystone up, move to the foundation, and put it there
-            } else {
-                // pick the rightmost skystone up, move to the foundation, and put it there
+            /*if (opModeIsActive()) {
+                // Use gyro to drive in a straight line.
+                correction = checkDirection();
+
+                telemetry.addData("1. imu heading", lastAngles.firstAngle);
+                telemetry.addData("2. global heading", globalAngle);
+                telemetry.addData("3. correction", correction);
+                telemetry.update();
+
+                leftFront.setPower(power - correction);
+                leftBack.setPower(power - correction);
+                rightFront.setPower(power + correction);
+                rightBack.setPower(power + correction);
+
+                // We record the sensor values because we will test them in more than
+                // one place with time passing between those places. See the lesson on
+                // Timing Considerations to know why.
+
+                move(500, movePower, true);
+            }*/
+
+            // waitForStart();
+
+            if (opModeIsActive()) {
+                telemetry.addLine("OpMode is active :)");
+                telemetry.addLine("Taking a nap...");
+                telemetry.update();
+
+                Thread.sleep(15000);
+
+                if (positionSkyStone.equals("left")) {
+                    // pick the leftmost one up, move to the foundation, and put it there
+                } else if (positionSkyStone.equals("center")) {
+                    // pick the center skystone up, move to the foundation, and put it there
+                } else {
+                    // pick the rightmost skystone up, move to the foundation, and put it there
+                }
+
+                // commands for the second skystone depending upon the location of the first one
             }
-
-            // commands for the second skystone depending upon the location of the first one
         }
+
+
 
         // Disable Tracking when we are done;
         CameraDevice.getInstance().setFlashTorchMode(false);
