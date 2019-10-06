@@ -20,9 +20,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+import org.openftc.revextensions2.*;
+
 @Autonomous(name="Autonomous Building Site", group="Autonomous")
 public class AutonomousBuildingSite extends LinearOpMode {
-    DcMotor                 leftFront, leftBack, rightFront, rightBack;
+    DcMotor                 leftFront, leftBack, rightFront, rightBack, intakeMotor;
     Servo                   foundationServo;
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
@@ -35,7 +37,7 @@ public class AutonomousBuildingSite extends LinearOpMode {
     static final double     WHELL_DIAMETER_INCHES = 3.937;
     static final double     COUNTS_PER_INCH       = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHELL_DIAMETER_INCHES * 3.1415);
-
+    ExpansionHubMotor intakeMotorRE2;
 
     // called when init button is  pressed.
     @Override
@@ -44,6 +46,10 @@ public class AutonomousBuildingSite extends LinearOpMode {
         leftBack = hardwareMap.dcMotor.get("left back");
         rightFront = hardwareMap.dcMotor.get("right front");
         rightBack = hardwareMap.dcMotor.get("right back");
+
+        intakeMotor = hardwareMap.dcMotor.get("intake motor");
+
+        intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("left front");;
 
         foundationServo = hardwareMap.servo.get("foundationServo");
 
@@ -134,7 +140,7 @@ public class AutonomousBuildingSite extends LinearOpMode {
             // Timing Considerations to know why.
 
             // Moving to the foundation, pulling it, and then moving to the line
-            move(5, movePower/2, false);
+            /*move(5, movePower/2, false);
             foundationServo.setPosition(0.5);
             strafe(24, movePower, true);
             move(25, movePower, false);
@@ -148,7 +154,12 @@ public class AutonomousBuildingSite extends LinearOpMode {
             strafe(20, movePower, false);
             move(5, movePower, false);
             foundationServo.setPosition(0);
-            strafe(28, movePower, false);
+            strafe(28, movePower, false);*/
+
+            intakeMotor.setPower(1);
+
+            telemetry.addData("Intake Motor current", intakeMotorRE2.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS));
+            telemetry.update();
         }
     }
 
