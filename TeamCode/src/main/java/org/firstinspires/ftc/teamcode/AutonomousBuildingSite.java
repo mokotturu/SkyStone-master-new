@@ -12,6 +12,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -42,6 +43,8 @@ public class AutonomousBuildingSite extends LinearOpMode {
             (WHELL_DIAMETER_INCHES * 3.1415);
     ExpansionHubMotor intakeMotorRE2;
     DistanceSensor leftRange, rightRange;
+    private ColorSensor sensorColor;
+    private DistanceSensor sensorDistance;
 
     // called when init button is  pressed.
     @Override
@@ -55,13 +58,11 @@ public class AutonomousBuildingSite extends LinearOpMode {
 
         intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake motor");;
 
-        leftRange = hardwareMap.get(DistanceSensor.class, "left_distance");
-        rightRange= hardwareMap.get(DistanceSensor.class, "right_distance");
+        /*leftRange = hardwareMap.get(DistanceSensor.class, "left_distance");
+        rightRange= hardwareMap.get(DistanceSensor.class, "right_distance");*/
 
-        // you can also cast this to a Rev2mDistanceSensor if you want to use added
-        // methods associated with the Rev2mDistanceSensor class.
-        Rev2mDistanceSensor leftRangeTOF = (Rev2mDistanceSensor) leftRange;
-        Rev2mDistanceSensor rightRangeTOF = (Rev2mDistanceSensor) rightRange;
+        sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color_distance");
+        sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
 
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.REVERSE);
@@ -150,7 +151,7 @@ public class AutonomousBuildingSite extends LinearOpMode {
             // Timing Considerations to know why.
 
             // Moving to the foundation, pulling it, and then moving to the line
-            /*move(5, movePower/2, false);
+            move(5, movePower/2, false);
             // foundationServo.setPosition(0.5);
             strafe(24, movePower, true);
             move(25, movePower, false);
@@ -158,23 +159,29 @@ public class AutonomousBuildingSite extends LinearOpMode {
             move(1, movePower/3, false);
             // foundationServo.setPosition(0);
             Thread.sleep(300);
-            move(27, movePower/1.7, true);  // change this to "when hitting the wall" once we get an ultrasonic sensor
+            move(27, movePower/1.7, true);  // change this to "when hitting the wall" once we get a sensor
+
+            while (sensorDistance.getDistance(DistanceUnit.INCH) > 4) {
+                leftFront.setPower(movePower);
+                leftBack.setPower(movePower);
+                rightFront.setPower(movePower);
+                rightBack.setPower(movePower);
+            }
+
+            while(leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
+
             // foundationServo.setPosition(0.5);
             Thread.sleep(15000);
             strafe(20, movePower, false);
             move(5, movePower, false);
             // foundationServo.setPosition(0);
-            strafe(28, movePower, false);*/
+            strafe(28, movePower, false);
 
-            while (!isStopRequested()) {
+            /*while (!isStopRequested()) {
                 telemetry.addData("Left Range", leftRangeTOF.getDistance(DistanceUnit.INCH));
                 telemetry.addData("Right Range", rightRangeTOF.getDistance(DistanceUnit.INCH));
                 telemetry.update();
-            }
-
-            /*rotate(90, rotationPower);
-            rotate(180, rotationPower);
-            rotate(-60, rotationPower);*/
+            }*/
         }
     }
 
