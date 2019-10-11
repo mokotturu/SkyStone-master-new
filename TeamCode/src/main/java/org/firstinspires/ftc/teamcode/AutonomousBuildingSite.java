@@ -121,8 +121,6 @@ public class AutonomousBuildingSite extends LinearOpMode {
         telemetry.addData("imu calib status", imu.getCalibrationStatus().toString());
         telemetry.update();
 
-        // wait for start button.
-
         // waitForStart();
 
         while (!opModeIsActive() && !isStopRequested()) {
@@ -130,16 +128,21 @@ public class AutonomousBuildingSite extends LinearOpMode {
             telemetry.update();
         }
 
-        sleep(1000);
+        // sleep(1000);
+
+        pidDrive.setSetpoint(0);
+        pidDrive.setOutputRange(0, power);
+        pidDrive.setInputRange(-90, 90);
+        pidDrive.enable();
 
         if (opModeIsActive()) {
             // Use gyro to drive in a straight line.
-            correction = checkDirection();
+            correction = pidDrive.performPID(getAngle());
 
-            telemetry.addData("1. imu heading", lastAngles.firstAngle);
+            /*telemetry.addData("1. imu heading", lastAngles.firstAngle);
             telemetry.addData("2. global heading", globalAngle);
             telemetry.addData("3. correction", correction);
-            telemetry.update();
+            telemetry.update();*/
 
             /*leftFront.setPower(power - correction);
             leftBack.setPower(power - correction);
@@ -154,22 +157,23 @@ public class AutonomousBuildingSite extends LinearOpMode {
             move(5, movePower/2, false);
             // foundationServo.setPosition(0.5);
             strafe(24, movePower, true);
-            move(25, movePower, false);
-            Thread.sleep(300);
-            move(1, movePower/3, false);
-            // foundationServo.setPosition(0);
-            Thread.sleep(300);
-            move(27, movePower/1.7, true);  // change this to "when hitting the wall" once we get a sensor
+
+            // move(25, movePower, false);
 
             while (sensorDistance.getDistance(DistanceUnit.INCH) > 4) {
-                leftFront.setPower(movePower);
-                leftBack.setPower(movePower);
-                rightFront.setPower(movePower);
-                rightBack.setPower(movePower);
+                leftFront.setPower(-movePower);
+                leftBack.setPower(-movePower);
+                rightFront.setPower(-movePower);
+                rightBack.setPower(-movePower);
             }
 
             while(leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
 
+            Thread.sleep(300);
+            move(3, movePower/3, false);
+            // foundationServo.setPosition(0);
+            Thread.sleep(300);
+            move(27, movePower/1.7, true);
             // foundationServo.setPosition(0.5);
             Thread.sleep(15000);
             strafe(20, movePower, false);
@@ -220,12 +224,12 @@ public class AutonomousBuildingSite extends LinearOpMode {
         rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftFront.setPower(myPower);
-        leftBack.setPower(-myPower);
-        rightFront.setPower(-myPower);
-        rightBack.setPower(myPower);
+        leftFront.setPower(myPower + correction);
+        leftBack.setPower(-myPower - correction);
+        rightFront.setPower(-myPower - correction);
+        rightBack.setPower(myPower + correction);
 
-        while(leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
+        while (leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
 
         leftFront.setPower(0);
         leftBack.setPower(0);
@@ -272,10 +276,10 @@ public class AutonomousBuildingSite extends LinearOpMode {
         rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftFront.setPower(myPower);
-        leftBack.setPower(myPower);
-        rightFront.setPower(myPower);
-        rightBack.setPower(myPower);
+        leftFront.setPower(myPower + correction);
+        leftBack.setPower(myPower + correction);
+        rightFront.setPower(myPower + correction);
+        rightBack.setPower(myPower + correction);
 
         while(leftFront.isBusy() && leftBack.isBusy() && rightBack.isBusy() && rightFront.isBusy()) { }
 
