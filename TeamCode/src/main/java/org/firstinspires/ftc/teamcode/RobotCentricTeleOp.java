@@ -41,8 +41,6 @@ public class RobotCentricTeleOp extends OpMode {
         rightBackWheel = hardwareMap.dcMotor.get("right back");
         intakeMotor = hardwareMap.dcMotor.get("intake motor");
 
-        foundationServo = hardwareMap.servo.get("foundationServo");
-
         leftFrontWheel.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBackWheel.setDirection(DcMotorSimple.Direction.REVERSE);
     }
@@ -57,16 +55,10 @@ public class RobotCentricTeleOp extends OpMode {
         driveMecanum(inputY, inputX, inputC);
 
         if (gamepad1.a) {
-            foundationServo.setPosition(0.25);
-        }
-        if (gamepad1.b) {
-            foundationServo.setPosition(0);
-        }
-        if (gamepad2.a) {
             intakeMotor.setPower(1);
         }
         // what about the same button again to stop intake motor
-        if (gamepad2.b) {
+        if (gamepad1.b) {
             intakeMotor.setPower(0);
         }
     }

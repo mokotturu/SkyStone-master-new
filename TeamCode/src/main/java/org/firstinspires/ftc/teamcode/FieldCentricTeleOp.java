@@ -28,6 +28,7 @@ public class FieldCentricTeleOp extends OpMode {
     private static DcMotor leftBackWheel;
     private static DcMotor rightFrontWheel;
     private static DcMotor rightBackWheel;
+    private static DcMotor intakeMotor;
     private static double PosXAngPosY;
     private static double PosXAngNegY;
     private static double NegXAng;
@@ -48,6 +49,7 @@ public class FieldCentricTeleOp extends OpMode {
         leftBackWheel = hardwareMap.dcMotor.get("left back");
         rightFrontWheel = hardwareMap.dcMotor.get("right front");
         rightBackWheel = hardwareMap.dcMotor.get("right back");
+        intakeMotor = hardwareMap.dcMotor.get("intake motor");
         leftFrontWheel.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBackWheel.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFrontWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -96,8 +98,16 @@ public class FieldCentricTeleOp extends OpMode {
         //telemetry.addData("Angle:",imu.getPosition().z);
         telemetry.update();
         heading = Math.toRadians(getAbsoluteHeading());
-        if (gamepad1.a){
+        if (gamepad2.a){
             heading = 0;
+        }
+
+        if (gamepad1.a) {
+            intakeMotor.setPower(1);
+        }
+
+        if (gamepad1.b) {
+            intakeMotor.setPower(0);
         }
     }
     public double adjustAngle(double angle) {
