@@ -2,14 +2,13 @@
  * Autonomous on the blue building site side.
  *
  * NOTES:
- * - Transfer the rotate() code to Autonomous for Depot side.
- * - Update the code once we have the ultrasonic sensors.
+ * - Fix the irregular movement part
+ * - Bump into the wall to fix the angle (try again if PID loops counter this)
  */
 
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -160,11 +159,27 @@ public class AutonomousBuildingSite extends LinearOpMode {
 
             // move(25, movePower, false);
 
-            while (sensorDistance.getDistance(DistanceUnit.INCH) > 4) {
+            // bumpy movement, fix it
+            boolean inSight = false;
+            while (!inSight) {
+                leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
                 leftFront.setPower(-movePower);
                 leftBack.setPower(-movePower);
                 rightFront.setPower(-movePower);
                 rightBack.setPower(-movePower);
+
+                if (sensorDistance.getDistance(DistanceUnit.INCH) < 4) {
+                    inSight = true;
+                }
             }
 
             while(leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
