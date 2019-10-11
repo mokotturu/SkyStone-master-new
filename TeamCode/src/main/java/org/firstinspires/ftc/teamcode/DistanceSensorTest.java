@@ -32,18 +32,25 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
+
+import com.qualcomm.hardware.lynx.LynxI2cColorRangeSensor;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+import java.util.Locale;
 
 @Autonomous(name = "DistanceSensorTest", group = "Autonomous")
 public class DistanceSensorTest extends LinearOpMode {
 
     private DistanceSensor leftDistance, rightDistance;
-    
+    private ColorSensor sensorColor;
+    private DistanceSensor sensorDistance;
 
     @Override
     public void runOpMode() {
@@ -56,13 +63,16 @@ public class DistanceSensorTest extends LinearOpMode {
         Rev2mDistanceSensor leftDistanceToF = (Rev2mDistanceSensor) leftDistance;
         Rev2mDistanceSensor rightDistanceToF = (Rev2mDistanceSensor) rightDistance;
 
+        sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color_distance");
+        sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
+
         telemetry.addData(">>", "Press start to continue");
         telemetry.update();
 
         // waitForStart();
 
         while (!opModeIsActive() && !isStopRequested()) {
-            telemetry.addLine("Waiting for start command");
+            telemetry.addLine("Waiting for start command...");
             telemetry.update();
         }
 
@@ -74,12 +84,16 @@ public class DistanceSensorTest extends LinearOpMode {
             telemetry.addData("range", String.format("%.01f m", leftDistance.getDistance(DistanceUnit.METER)));
             telemetry.addData("range", String.format("%.01f in", leftDistance.getDistance(DistanceUnit.INCH)));*/
 
-            telemetry.addData("deviceName", rightDistance.getDeviceName());
+            /*telemetry.addData("deviceName", rightDistance.getDeviceName());
             telemetry.addData("range", String.format("%.01f mm", rightDistance.getDistance(DistanceUnit.MM)));
             telemetry.addData("range", String.format("%.01f cm", rightDistance.getDistance(DistanceUnit.CM)));
             telemetry.addData("range", String.format("%.01f m", rightDistance.getDistance(DistanceUnit.METER)));
             telemetry.addData("range", String.format("%.01f in", rightDistance.getDistance(DistanceUnit.INCH)));
 
+            telemetry.update();*/
+
+            telemetry.addData("Color Distance Sensor: Distance (in)",
+                    String.format(Locale.US, "%.02f", sensorDistance.getDistance(DistanceUnit.INCH)));
             telemetry.update();
         }
     }
