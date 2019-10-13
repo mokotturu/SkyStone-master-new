@@ -16,6 +16,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.openftc.revextensions2.*;
+
 import java.util.Locale;
 import java.lang.Math;
 import java.util.Arrays;
@@ -29,6 +31,7 @@ public class FieldCentricTeleOp extends OpMode {
     private static DcMotor rightFrontWheel;
     private static DcMotor rightBackWheel;
     private static DcMotor intakeMotor;
+    private static ExpansionHubMotor intakeMotorRE2;
     private static double PosXAngPosY;
     private static double PosXAngNegY;
     private static double NegXAng;
@@ -50,12 +53,16 @@ public class FieldCentricTeleOp extends OpMode {
         rightFrontWheel = hardwareMap.dcMotor.get("right front");
         rightBackWheel = hardwareMap.dcMotor.get("right back");
         intakeMotor = hardwareMap.dcMotor.get("intake motor");
+        intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake motor");
+
         leftFrontWheel.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBackWheel.setDirection(DcMotorSimple.Direction.REVERSE);
+
         leftFrontWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBackWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFrontWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
@@ -71,7 +78,7 @@ public class FieldCentricTeleOp extends OpMode {
         double inputY = gamepad1.left_stick_y;
         double inputX = -gamepad1.left_stick_x;
         double inputC = -gamepad1.right_stick_x;
-        //the negative signs in front of the gamepad inputs may need to be removed.
+        // the negative signs in front of the gamepad inputs may need to be removed.
         driveMecanum(inputY, inputX, inputC);
 
         if(gamepad1.left_stick_x >=0 && gamepad1.left_stick_y < 0){
@@ -106,8 +113,31 @@ public class FieldCentricTeleOp extends OpMode {
             intakeMotor.setPower(1);
         }
 
-        if (gamepad1.b) {
+        if (gamepad1.b || gamepad1.x) {
             intakeMotor.setPower(0);
+        }
+
+        if (gamepad1.y) {
+            intakeMotor.setPower(-1);
+        }
+
+        if (gamepad1.right_bumper) {
+
+        }
+
+        try {
+            if (intakeMotorRE2.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS) > 5) {
+                telemetry.addLine("Intake Motor stalling. Restarting motor...");
+                telemetry.update();
+                intakeMotor.setPower(0);
+                Thread.sleep(500);
+                intakeMotor.setPower(-1);
+                Thread.sleep(500);
+                intakeMotor.setPower(1);
+            }
+        } catch (InterruptedException ie) {
+            telemetry.addLine("Thread interrupted. Exiting...");
+            telemetry.update();
         }
     }
     public double adjustAngle(double angle) {

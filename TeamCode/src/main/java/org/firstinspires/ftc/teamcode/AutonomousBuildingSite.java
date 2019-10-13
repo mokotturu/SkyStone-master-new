@@ -34,7 +34,7 @@ public class AutonomousBuildingSite extends LinearOpMode {
     PIDController           pidRotate, pidDrive;
     double                  globalAngle, power = .30, correction, rotation;
     double                  rotationPower = 0.5;
-    double                  movePower = 0.7;
+    double                  movePower = 0.4;
     static final double     COUNTS_PER_MOTOR_REV  = 537.6;
     static final double     DRIVE_GEAR_REDUCTION  = 1.0;
     static final double     WHELL_DIAMETER_INCHES = 3.937;
@@ -135,43 +135,31 @@ public class AutonomousBuildingSite extends LinearOpMode {
         pidDrive.enable();
 
         if (opModeIsActive()) {
+
             // Use gyro to drive in a straight line.
             correction = pidDrive.performPID(getAngle());
 
-            /*telemetry.addData("1. imu heading", lastAngles.firstAngle);
-            telemetry.addData("2. global heading", globalAngle);
-            telemetry.addData("3. correction", correction);
-            telemetry.update();*/
-
-            /*leftFront.setPower(power - correction);
-            leftBack.setPower(power - correction);
-            rightFront.setPower(power + correction);
-            rightBack.setPower(power + correction);*/
-
-            // We record the sensor values because we will test them in more than
-            // one place with time passing between those places. See the lesson on
-            // Timing Considerations to know why.
-
             // Moving to the foundation, pulling it, and then moving to the line
+
             move(5, movePower/2, false);
             // foundationServo.setPosition(0.5);
             strafe(24, movePower, true);
 
             // move(25, movePower, false);
 
+            leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
             // bumpy movement, fix it
             boolean inSight = false;
             while (!inSight) {
-                leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-                leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
                 leftFront.setPower(-movePower);
                 leftBack.setPower(-movePower);
                 rightFront.setPower(-movePower);
@@ -184,6 +172,16 @@ public class AutonomousBuildingSite extends LinearOpMode {
 
             while(leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
 
+            leftFront.setPower(0);
+            leftBack.setPower(0);
+            rightFront.setPower(0);
+            rightBack.setPower(0);
+
+            leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
             Thread.sleep(300);
             move(3, movePower/3, false);
             // foundationServo.setPosition(0);
@@ -195,14 +193,10 @@ public class AutonomousBuildingSite extends LinearOpMode {
             move(5, movePower, false);
             // foundationServo.setPosition(0);
             strafe(28, movePower, false);
-
-            /*while (!isStopRequested()) {
-                telemetry.addData("Left Range", leftRangeTOF.getDistance(DistanceUnit.INCH));
-                telemetry.addData("Right Range", rightRangeTOF.getDistance(DistanceUnit.INCH));
-                telemetry.update();
-            }*/
         }
     }
+
+
 
     // set direction to true if strafing right, false if strafing left
     private void strafe(int distance, double power, boolean direction) {

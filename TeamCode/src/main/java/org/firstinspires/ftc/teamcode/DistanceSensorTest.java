@@ -32,68 +32,43 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
-import com.qualcomm.hardware.lynx.LynxI2cColorRangeSensor;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.Locale;
-
-@Autonomous(name = "DistanceSensorTest", group = "Autonomous")
+@TeleOp(name = "Sensor: REV2mDistance", group = "TeleOp")
 public class DistanceSensorTest extends LinearOpMode {
 
-    private DistanceSensor leftDistance, rightDistance;
-    private ColorSensor sensorColor;
-    private DistanceSensor sensorDistance;
+    private DistanceSensor sensorRange;
 
     @Override
     public void runOpMode() {
         // you can use this as a regular DistanceSensor.
-        // leftDistance = hardwareMap.get(DistanceSensor.class, "left_distance");
-        rightDistance = hardwareMap.get(DistanceSensor.class, "right_distance");
+        sensorRange = hardwareMap.get(DistanceSensor.class, "sensor_range");
 
         // you can also cast this to a Rev2mDistanceSensor if you want to use added
         // methods associated with the Rev2mDistanceSensor class.
-        Rev2mDistanceSensor leftDistanceToF = (Rev2mDistanceSensor) leftDistance;
-        Rev2mDistanceSensor rightDistanceToF = (Rev2mDistanceSensor) rightDistance;
-
-        sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color_distance");
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)sensorRange;
 
         telemetry.addData(">>", "Press start to continue");
         telemetry.update();
 
-        // waitForStart();
-
-        while (!opModeIsActive() && !isStopRequested()) {
-            telemetry.addLine("Waiting for start command...");
-            telemetry.update();
-        }
-
+        waitForStart();
         while(opModeIsActive()) {
             // generic DistanceSensor methods.
-            /*telemetry.addData("deviceName", leftDistance.getDeviceName());
-            telemetry.addData("range", String.format("%.01f mm", leftDistance.getDistance(DistanceUnit.MM)));
-            telemetry.addData("range", String.format("%.01f cm", leftDistance.getDistance(DistanceUnit.CM)));
-            telemetry.addData("range", String.format("%.01f m", leftDistance.getDistance(DistanceUnit.METER)));
-            telemetry.addData("range", String.format("%.01f in", leftDistance.getDistance(DistanceUnit.INCH)));*/
+            telemetry.addData("deviceName",sensorRange.getDeviceName() );
+            telemetry.addData("range", String.format("%.01f mm", sensorRange.getDistance(DistanceUnit.MM)));
+            telemetry.addData("range", String.format("%.01f cm", sensorRange.getDistance(DistanceUnit.CM)));
+            telemetry.addData("range", String.format("%.01f m", sensorRange.getDistance(DistanceUnit.METER)));
+            telemetry.addData("range", String.format("%.01f in", sensorRange.getDistance(DistanceUnit.INCH)));
 
-            /*telemetry.addData("deviceName", rightDistance.getDeviceName());
-            telemetry.addData("range", String.format("%.01f mm", rightDistance.getDistance(DistanceUnit.MM)));
-            telemetry.addData("range", String.format("%.01f cm", rightDistance.getDistance(DistanceUnit.CM)));
-            telemetry.addData("range", String.format("%.01f m", rightDistance.getDistance(DistanceUnit.METER)));
-            telemetry.addData("range", String.format("%.01f in", rightDistance.getDistance(DistanceUnit.INCH)));
+            // Rev2mDistanceSensor specific methods.
+            telemetry.addData("ID", String.format("%x", sensorTimeOfFlight.getModelID()));
+            telemetry.addData("did time out", Boolean.toString(sensorTimeOfFlight.didTimeoutOccur()));
 
-            telemetry.update();*/
-
-            telemetry.addData("Color Distance Sensor: Distance (in)",
-                    String.format(Locale.US, "%.02f", sensorDistance.getDistance(DistanceUnit.INCH)));
             telemetry.update();
         }
     }
