@@ -34,7 +34,7 @@ public class AutonomousBuildingSite extends LinearOpMode {
     PIDController           pidRotate, pidDrive;
     double                  globalAngle, power = .30, correction, rotation;
     double                  rotationPower = 0.5;
-    double                  movePower = 0.4;
+    double                  movePower = 0.4;    // this is a slow move speed--required for this auto to prevent the robot from smashing into things
     static final double     COUNTS_PER_MOTOR_REV  = 537.6;
     static final double     DRIVE_GEAR_REDUCTION  = 1.0;
     static final double     WHELL_DIAMETER_INCHES = 3.937;
@@ -43,7 +43,7 @@ public class AutonomousBuildingSite extends LinearOpMode {
     ExpansionHubMotor intakeMotorRE2;
     DistanceSensor leftRange, rightRange;
     private ColorSensor sensorColor;
-    private DistanceSensor sensorDistance;
+    private DistanceSensor sensorColorDistance;
 
     // called when init button is  pressed.
     @Override
@@ -55,34 +55,22 @@ public class AutonomousBuildingSite extends LinearOpMode {
 
         intakeMotor = hardwareMap.dcMotor.get("intake motor");
 
-        intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake motor");;
+        intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake motor");
 
         /*leftRange = hardwareMap.get(DistanceSensor.class, "left_distance");
         rightRange= hardwareMap.get(DistanceSensor.class, "right_distance");*/
 
         sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color_distance");
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
+        sensorColorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
 
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.REVERSE);
 
-        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        applyBrakes();
 
+        setMotorMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        // Change from encoders to ultrasonic sensor when available
-
-        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        applyBrakes();
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -120,14 +108,12 @@ public class AutonomousBuildingSite extends LinearOpMode {
         telemetry.addData("imu calib status", imu.getCalibrationStatus().toString());
         telemetry.update();
 
-        // waitForStart();
-
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addLine("Waiting for start command...");
             telemetry.update();
         }
 
-        // sleep(1000);
+        sleep(1000);
 
         pidDrive.setSetpoint(0);
         pidDrive.setOutputRange(0, power);
@@ -147,40 +133,23 @@ public class AutonomousBuildingSite extends LinearOpMode {
 
             // move(25, movePower, false);
 
-            leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            setMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-            leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            setMotorMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-            // bumpy movement, fix it
             boolean inSight = false;
             while (!inSight) {
-                leftFront.setPower(-movePower);
-                leftBack.setPower(-movePower);
-                rightFront.setPower(-movePower);
-                rightBack.setPower(-movePower);
+                setMotorPower(-movePower, -movePower, -movePower, -movePower);
 
-                if (sensorDistance.getDistance(DistanceUnit.INCH) < 4) {
+                if (sensorColorDistance.getDistance(DistanceUnit.INCH) < 4) {
                     inSight = true;
                 }
             }
 
             while(leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
 
-            leftFront.setPower(0);
-            leftBack.setPower(0);
-            rightFront.setPower(0);
-            rightBack.setPower(0);
-
-            leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            setMotorPower(0, 0, 0, 0);
+            applyBrakes();
 
             Thread.sleep(300);
             move(3, movePower/3, false);
@@ -196,7 +165,33 @@ public class AutonomousBuildingSite extends LinearOpMode {
         }
     }
 
+    private void setMotorMode(DcMotor.RunMode m) {
+        leftFront.setMode(m);
+        leftBack.setMode(m);
+        rightFront.setMode(m);
+        rightBack.setMode(m);
+    }
 
+    private void setMotorPower(double lf, double lb, double rf, double rb) {
+        leftFront.setPower(lf);
+        leftBack.setPower(lb);
+        rightFront.setPower(rf);
+        rightBack.setPower(rb);
+    }
+
+    private void applyBrakes() {
+        leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+    }
+
+    private void setMotorTargetPosition(int lf, int lb, int rf, int rb) {
+        leftFront.setTargetPosition(lf);
+        leftBack.setTargetPosition(lb);
+        rightFront.setTargetPosition(rf);
+        rightBack.setTargetPosition(rb);
+    }
 
     // set direction to true if strafing right, false if strafing left
     private void strafe(int distance, double power, boolean direction) {
@@ -218,37 +213,19 @@ public class AutonomousBuildingSite extends LinearOpMode {
             strafeDistance = -targetPos;
         }
 
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftFront.setTargetPosition(strafeDistance);
-        leftBack.setTargetPosition(-strafeDistance);
-        rightFront.setTargetPosition(-strafeDistance);
-        rightBack.setTargetPosition(strafeDistance);
+        setMotorTargetPosition(strafeDistance, -strafeDistance, -strafeDistance, strafeDistance);
 
-        leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        setMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftFront.setPower(myPower + correction);
-        leftBack.setPower(-myPower - correction);
-        rightFront.setPower(-myPower - correction);
-        rightBack.setPower(myPower + correction);
+        setMotorPower(myPower + correction, -myPower - correction, -myPower - correction, myPower + correction);
 
         while (leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
 
-        leftFront.setPower(0);
-        leftBack.setPower(0);
-        rightFront.setPower(0);
-        rightBack.setPower(0);
+        setMotorPower(0, 0, 0, 0);
 
-        leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        applyBrakes();
     }
 
     private void move(int distance, double power, boolean direction) {
@@ -270,37 +247,19 @@ public class AutonomousBuildingSite extends LinearOpMode {
             moveDistance = -targetPos;
         }
 
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftFront.setTargetPosition(moveDistance);
-        leftBack.setTargetPosition(moveDistance);
-        rightFront.setTargetPosition(moveDistance);
-        rightBack.setTargetPosition(moveDistance);
+        setMotorTargetPosition(moveDistance, moveDistance,moveDistance, moveDistance);
 
-        leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        setMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftFront.setPower(myPower + correction);
-        leftBack.setPower(myPower + correction);
-        rightFront.setPower(myPower + correction);
-        rightBack.setPower(myPower + correction);
+        setMotorPower(myPower + correction, myPower + correction, myPower + correction, myPower + correction);
 
         while(leftFront.isBusy() && leftBack.isBusy() && rightBack.isBusy() && rightFront.isBusy()) { }
 
-        leftFront.setPower(0);
-        leftBack.setPower(0);
-        rightFront.setPower(0);
-        rightBack.setPower(0);
+        setMotorPower(0, 0, 0, 0);
 
-        leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        applyBrakes();
     }
 
     /**
@@ -398,37 +357,25 @@ public class AutonomousBuildingSite extends LinearOpMode {
             // On right turn we have to get off zero first.
             while (opModeIsActive() && getAngle() == 0)
             {
-                leftFront.setPower(power);
-                leftBack.setPower(power);
-                rightFront.setPower(-power);
-                rightBack.setPower(-power);
+                setMotorPower(power, power, -power, power);
                 sleep(100);
             }
 
             do
             {
                 power = pidRotate.performPID(getAngle()); // power will be - on right turn.
-                leftFront.setPower(-power);
-                leftBack.setPower(-power);
-                rightFront.setPower(power);
-                rightBack.setPower(power);
+                setMotorPower(-power, -power, power, power);
             } while (opModeIsActive() && !pidRotate.onTarget());
         }
         else    // left turn.
             do
             {
                 power = pidRotate.performPID(getAngle()); // power will be + on left turn.
-                leftFront.setPower(-power);
-                leftBack.setPower(-power);
-                rightFront.setPower(power);
-                rightBack.setPower(power);
+                setMotorPower(-power, -power, power, power);
             } while (opModeIsActive() && !pidRotate.onTarget());
 
         // turn the motors off.
-        leftFront.setPower(0);
-        leftBack.setPower(0);
-        rightFront.setPower(0);
-        rightBack.setPower(0);
+        setMotorPower(0, 0, 0, 0);
 
         rotation = getAngle();
 

@@ -38,10 +38,15 @@ import android.graphics.Camera;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.vuforia.CameraDevice;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.openftc.revextensions2.*;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -152,8 +157,11 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
     String positionSkyStone = "";
 
     // my vars
-    DcMotor                 leftFront, leftBack, rightFront, rightBack;
+    DcMotor                 leftFront, leftBack, rightFront, rightBack, intakeMotor;
+    private static ExpansionHubMotor intakeMotorRE2;
     Servo                   foundationServo;
+    private ColorSensor sensorColor;
+    private DistanceSensor sensorColorDistance;
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
     PIDController           pidRotate, pidDrive;
@@ -174,6 +182,12 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
         rightFront = hardwareMap.dcMotor.get("right front");
         rightBack = hardwareMap.dcMotor.get("right back");
 
+        intakeMotor = hardwareMap.dcMotor.get("intake motor");
+        intakeMotorRE2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake motor");
+
+        sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color_distance");
+        sensorColorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
+
         foundationServo = hardwareMap.servo.get("foundationServo");
 
         foundationServo.setPosition(0);
@@ -185,9 +199,6 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-
-        // Change from encoders to ultrasonic sensor when available
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -392,7 +403,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
         }
 
         // WARNING:
-        // In this sample, we do not wait for PLAY to be pressed.  Target Tracking is started immediately when INIT is pressed.
+        // In this sample, we do not wait for PLAY to be pressed. Target Tracking is started immediately when INIT is pressed.
         // This sequence is used to enable the new remote DS Camera Preview feature to be used with this sample.
         // CONSEQUENTLY do not put any driving commands in this loop.
         // To restore the normal opmode structure, just un-comment the following line:
@@ -465,43 +476,43 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
             }
             telemetry.update();
 
-            /*if (opModeIsActive()) {
-                // Use gyro to drive in a straight line.
-                correction = checkDirection();
-
-                telemetry.addData("1. imu heading", lastAngles.firstAngle);
-                telemetry.addData("2. global heading", globalAngle);
-                telemetry.addData("3. correction", correction);
-                telemetry.update();
-
-                leftFront.setPower(power - correction);
-                leftBack.setPower(power - correction);
-                rightFront.setPower(power + correction);
-                rightBack.setPower(power + correction);
-
-                // We record the sensor values because we will test them in more than
-                // one place with time passing between those places. See the lesson on
-                // Timing Considerations to know why.
-
-                move(500, movePower, true);
-            }*/
-
-            // waitForStart();
-
             if (opModeIsActive()) {
-                telemetry.addLine("OpMode is active :)");
-                telemetry.addLine("Taking a nap...");
-                telemetry.update();
 
-                Thread.sleep(15000);
-
+                // first skystone process
+                move(15, movePower/1.5, true);
                 if (positionSkyStone.equals("left")) {
-                    // pick the leftmost one up, move to the foundation, and put it there
+                    moveAndPickSkyStone("left");
                 } else if (positionSkyStone.equals("center")) {
-                    // pick the center skystone up, move to the foundation, and put it there
+                    moveAndPickSkyStone("center");
                 } else {
-                    // pick the rightmost skystone up, move to the foundation, and put it there
+                    moveAndPickSkyStone("right");
                 }
+
+                rotate(-90, rotationPower/2);
+                strafe(17, movePower/2, false);
+                strafe(12, movePower/2, true);
+
+                setMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                setMotorMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+                boolean inSight = false;
+                while (!inSight) {
+                    setMotorPower(-movePower, -movePower, -movePower, -movePower);
+
+                    if (sensorColorDistance.getDistance(DistanceUnit.INCH) < 4) {
+                        inSight = true;
+                    }
+                }
+
+                while (leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
+
+                setMotorPower(0, 0, 0, 0);
+                applyBrakes();
+
+                // arm commands to place the skystone on the foundation
+
+                // go back to the second stone
 
                 // commands for the second skystone depending upon the location of the first one
             }
@@ -512,6 +523,70 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
         // Disable Tracking when we are done;
         CameraDevice.getInstance().setFlashTorchMode(false);
         targetsSkyStone.deactivate();
+    }
+
+    private void moveAndPickSkyStone(String pos) {
+        int strafeDist = 8;
+        if (pos.equals("left")) {
+            strafeDist = 8;
+        } else if (pos.equals("center")) {
+            strafeDist = 16;
+        } else {
+            strafeDist = 24;
+        }
+
+        strafe(strafeDist, movePower/3, true);
+        rotate(-20,rotationPower/2);
+        while(/*!isTouchensorPressed*/) {
+            // move slowly
+            intakeMotor.setPower(1);
+            try {
+                if (intakeMotorRE2.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS) > 5) {
+                    telemetry.addLine("Intake Motor stalling. Restarting motor...");
+                    telemetry.update();
+                    intakeMotor.setPower(0);
+                    Thread.sleep(500);
+                    intakeMotor.setPower(-1);
+                    Thread.sleep(500);
+                    intakeMotor.setPower(1);
+                }
+            } catch (InterruptedException ie) {
+                telemetry.addLine("Thread interrupted. Exiting...");
+                telemetry.update();
+            }
+        }
+
+        intakeMotor.setPower(0);
+        move(10, movePower/2, false);
+        rotate(20, rotationPower/2);
+    }
+
+    private void setMotorMode(DcMotor.RunMode m) {
+        leftFront.setMode(m);
+        leftBack.setMode(m);
+        rightFront.setMode(m);
+        rightBack.setMode(m);
+    }
+
+    private void setMotorPower(double lf, double lb, double rf, double rb) {
+        leftFront.setPower(lf);
+        leftBack.setPower(lb);
+        rightFront.setPower(rf);
+        rightBack.setPower(rb);
+    }
+
+    private void applyBrakes() {
+        leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+    }
+
+    private void setMotorTargetPosition(int lf, int lb, int rf, int rb) {
+        leftFront.setTargetPosition(lf);
+        leftBack.setTargetPosition(lb);
+        rightFront.setTargetPosition(rf);
+        rightBack.setTargetPosition(rb);
     }
 
     // set direction to true if strafing right, false if strafing left
@@ -531,37 +606,18 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
             strafeDistance = -targetPos;
         }
 
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftFront.setTargetPosition(strafeDistance);
-        leftBack.setTargetPosition(-strafeDistance);
-        rightFront.setTargetPosition(-strafeDistance);
-        rightBack.setTargetPosition(strafeDistance);
+        setMotorTargetPosition(strafeDistance, -strafeDistance, -strafeDistance, strafeDistance);
 
-        leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        setMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftFront.setPower(myPower);
-        leftBack.setPower(-myPower);
-        rightFront.setPower(-myPower);
-        rightBack.setPower(myPower);
+        setMotorPower(myPower, -myPower, -myPower, myPower);
 
         while (leftFront.isBusy() && leftBack.isBusy() && rightFront.isBusy() && rightBack.isBusy()) { }
 
-        leftFront.setPower(0);
-        leftBack.setPower(0);
-        rightFront.setPower(0);
-        rightBack.setPower(0);
-
-        leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        setMotorPower(0, 0, 0, 0);
+        applyBrakes();
     }
 
     private void move(int distance, double power, boolean direction) {
@@ -580,37 +636,18 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
             moveDistance = -targetPos;
         }
 
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftFront.setTargetPosition(moveDistance);
-        leftBack.setTargetPosition(moveDistance);
-        rightFront.setTargetPosition(moveDistance);
-        rightBack.setTargetPosition(moveDistance);
+        setMotorTargetPosition(moveDistance, moveDistance, moveDistance, moveDistance);
 
-        leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        setMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftFront.setPower(myPower);
-        leftBack.setPower(myPower);
-        rightFront.setPower(myPower);
-        rightBack.setPower(myPower);
+        setMotorPower(myPower, myPower, myPower, myPower);
 
         while (leftFront.isBusy() && leftBack.isBusy() && rightBack.isBusy() && rightFront.isBusy()) { }
 
-        leftFront.setPower(0);
-        leftBack.setPower(0);
-        rightFront.setPower(0);
-        rightBack.setPower(0);
-
-        leftFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        setMotorPower(0, 0, 0, 0);
+        applyBrakes();
     }
 
     /**
@@ -708,37 +745,25 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
             // On right turn we have to get off zero first.
             while (opModeIsActive() && getAngle() == 0)
             {
-                leftFront.setPower(power);
-                leftBack.setPower(power);
-                rightFront.setPower(-power);
-                rightBack.setPower(-power);
+                setMotorPower(power, power, -power, -power);
                 sleep(100);
             }
 
             do
             {
                 power = pidRotate.performPID(getAngle()); // power will be - on right turn.
-                leftFront.setPower(-power);
-                leftBack.setPower(-power);
-                rightFront.setPower(power);
-                rightBack.setPower(power);
+                setMotorPower(-power, -power, power, power);
             } while (opModeIsActive() && !pidRotate.onTarget());
         }
         else    // left turn.
             do
             {
                 power = pidRotate.performPID(getAngle()); // power will be + on left turn.
-                leftFront.setPower(-power);
-                leftBack.setPower(-power);
-                rightFront.setPower(power);
-                rightBack.setPower(power);
+                setMotorPower(-power, -power, power, power);
             } while (opModeIsActive() && !pidRotate.onTarget());
 
         // turn the motors off.
-        leftFront.setPower(0);
-        leftBack.setPower(0);
-        rightFront.setPower(0);
-        rightBack.setPower(0);
+        setMotorPower(0, 0,0, 0);
 
         rotation = getAngle();
 
