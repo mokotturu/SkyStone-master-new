@@ -170,9 +170,9 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
     double                  movePower = 0.7;
     static final double     COUNTS_PER_MOTOR_REV  = 537.6;
     static final double     DRIVE_GEAR_REDUCTION  = 1.0;
-    static final double     WHELL_DIAMETER_INCHES = 3.937;
+    static final double     WHEEL_DIAMETER_INCHES = 3.937;
     static final double     COUNTS_PER_INCH       = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHELL_DIAMETER_INCHES * 3.1415);
+            (WHEEL_DIAMETER_INCHES * 3.1415);
 
     @Override
     public void runOpMode() throws InterruptedException{
@@ -476,7 +476,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
             }
             telemetry.update();
 
-            if (opModeIsActive()) {
+            /*if (opModeIsActive()) {
 
                 // first skystone process
                 move(15, movePower/1.5, true);
@@ -515,7 +515,7 @@ public class VuforiaSkyStoneNavigation extends LinearOpMode {
                 // go back to the second stone
 
                 // commands for the second skystone depending upon the location of the first one
-            }
+            }*/
         }
 
 

@@ -37,9 +37,9 @@ public class AutonomousBuildingSite extends LinearOpMode {
     double                  movePower = 0.4;    // this is a slow move speed--required for this auto to prevent the robot from smashing into things
     static final double     COUNTS_PER_MOTOR_REV  = 537.6;
     static final double     DRIVE_GEAR_REDUCTION  = 1.0;
-    static final double     WHELL_DIAMETER_INCHES = 3.937;
+    static final double     WHEEL_DIAMETER_INCHES = 3.937;
     static final double     COUNTS_PER_INCH       = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHELL_DIAMETER_INCHES * 3.1415);
+            (WHEEL_DIAMETER_INCHES * 3.1415);
     ExpansionHubMotor intakeMotorRE2;
     DistanceSensor leftRange, rightRange;
     private ColorSensor sensorColor;
